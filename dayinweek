@@ -1,0 +1,54 @@
+#pokretanje:
+#server: python DayOfWeek.py server
+#klijent: python DayOfWeek.py klijent 7.2.2017
+
+import socket, sys
+import datetime
+
+class Server:
+    def __init__(self):
+        self.host=''
+        self.port=54321
+        self.run_server()
+
+    def run_server(self):
+        # stvori socket objekt koji koristi UDP
+        server_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        # povezi socket s adresom koje ti da OS
+        server_socket.bind((self.host,self.port))
+        server_socket.listen(1)
+
+        while True:
+            client_socket, client_address = server_socket.accept()
+            message = client_socket.recv(1024)
+
+            dani=["ponedjeljak","utorak","srijeda","cetvrtak","petak","subota","nedjelja"]
+            datum=message.split(".")
+            odgovor=message+" je bio "+dani[datetime.date(int(datum[2]),int(datum[1]),int(datum[0])).weekday()]
+
+            client_socket.send(odgovor)
+
+        server_socket.close()
+
+class Client:
+    def __init__(self,message):
+        self.remote_host='127.0.0.1'
+        self.remote_port=54321
+        self.message=message
+        self.run_client()
+
+    def run_client(self):
+        client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        client_socket.connect((self.remote_host, self.remote_port))
+
+        client_socket.send(self.message)
+        odgovor = client_socket.recv(1024)
+
+        print "ODGOVOR POSLUZITELJA: "+odgovor
+
+        client_socket.close()
+
+if sys.argv[1]=="server":
+    server=Server()
+elif sys.argv[1]=="klijent":
+    client=Client(sys.argv[2])
